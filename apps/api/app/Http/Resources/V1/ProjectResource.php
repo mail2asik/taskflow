@@ -7,13 +7,17 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProjectResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'key' => $this->key,
+            'description' => $this->description,
+            'is_archived' => $this->is_archived,
+            'owner' => new UserResource($this->whenLoaded('owner')),
+            'members' => UserResource::collection($this->whenLoaded('members')),
+            'created_at' => $this->created_at->toIso8601String(),
+        ];
     }
 }
