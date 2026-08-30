@@ -21,6 +21,9 @@ class UpdateProjectRequest extends FormRequest
             'labels.*.color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'description' => ['nullable', 'string', 'max:1000'],
             'is_archived' => ['sometimes', 'boolean'],
+            'members' => ['nullable', 'array'],
+            'members.*.user_id' => ['required', 'integer', 'exists:users,id'],
+            'members.*.role' => ['required', 'string', 'in:owner,admin,member'],
         ];
     }
 }

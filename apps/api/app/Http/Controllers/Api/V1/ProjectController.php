@@ -44,6 +44,14 @@ class ProjectController extends Controller
             $project->labels()->createMany($labels);
         }
 
+        // Add members to the project
+        if ($request->has('members')) {
+            $members = collect($request->input('members'))->mapWithKeys(function ($member) {
+                return [$member['user_id'] => ['role' => $member['role']]];
+            });
+            $project->members()->attach($members);
+        }
+
         return response()->json(new ProjectResource($project->load(['owner', 'members'])), 201);
     }
 
@@ -67,6 +75,15 @@ class ProjectController extends Controller
                 return ['name' => $label['name'], 'color' => $label['color']];
             });
             $project->labels()->createMany($labels);
+        }
+
+        // Update members if provided
+        if ($request->has('members')) {
+            $project->members()->detach(); // Remove existing members
+            $members = collect($request->input('members'))->mapWithKeys(function ($member) {
+                return [$member['user_id'] => ['role' => $member['role']]];
+            });
+            $project->members()->attach($members);
         }
 
         return new ProjectResource($project->load(['owner', 'members']));

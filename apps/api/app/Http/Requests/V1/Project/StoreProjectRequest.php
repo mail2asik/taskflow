@@ -20,6 +20,9 @@ class StoreProjectRequest extends FormRequest
             'labels.*.name' => ['required', 'string', 'max:50'],
             'labels.*.color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'members' => ['nullable', 'array'],
+            'members.*.user_id' => ['required', 'integer', 'exists:users,id'],
+            'members.*.role' => ['required', 'string', 'in:owner,admin,member'],
         ];
     }
 }
