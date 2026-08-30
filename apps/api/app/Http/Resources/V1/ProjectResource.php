@@ -13,6 +13,13 @@ class ProjectResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'key' => $this->key,
+            'labels' => $this->labels->map(function ($label) {
+                return [
+                    'id' => $label->id,
+                    'name' => $label->name,
+                    'color' => $label->color,
+                ];
+            }),
             'description' => $this->description,
             'is_archived' => $this->is_archived,
             'owner' => new UserResource($this->whenLoaded('owner')),

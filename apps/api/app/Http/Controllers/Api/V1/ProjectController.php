@@ -36,6 +36,14 @@ class ProjectController extends Controller
         // Attach owner as project member
         $project->members()->attach($request->user()->id, ['role' => 'owner']);
 
+        // Add labels to the project
+        if ($request->has('labels')) {
+            $labels = collect($request->input('labels'))->map(function ($label) {
+                return ['name' => $label['name'], 'color' => $label['color']];
+            });
+            $project->labels()->createMany($labels);
+        }
+
         return response()->json(new ProjectResource($project->load(['owner', 'members'])), 201);
     }
 
@@ -51,6 +59,15 @@ class ProjectController extends Controller
         Gate::authorize('update', $project);
 
         $project->update($request->validated());
+
+        // Update labels if provided
+        if ($request->has('labels')) {
+            $project->labels()->delete(); // Remove existing labels
+            $labels = collect($request->input('labels'))->map(function ($label) {
+                return ['name' => $label['name'], 'color' => $label['color']];
+            });
+            $project->labels()->createMany($labels);
+        }
 
         return new ProjectResource($project->load(['owner', 'members']));
     }
