@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useIssueStore } from '../../stores/issue'
-import { echo } from '../../services/echo'
-import IssueCard from '../../components/issue/IssueCard.vue'
-import type { Issue, IssueStatus } from '../../types/issue'
+import { useIssueStore } from '../stores/issue'
+import { echo } from '../services/echo'
+import IssueCard from '../components/issue/IssueCard.vue'
+import type { Issue, IssueStatus } from '../types/issue'
 
 const route = useRoute()
 const issueStore = useIssueStore()
