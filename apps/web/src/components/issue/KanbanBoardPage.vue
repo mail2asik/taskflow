@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useIssueStore } from '../../stores/issue'
+import { echo } from '../../services/echo'
 import IssueCard from '../../components/issue/IssueCard.vue'
 import type { Issue, IssueStatus } from '../../types/issue'
 
@@ -20,6 +21,21 @@ const columns: { label: string; key: IssueStatus }[] = [
 
 onMounted(() => {
   issueStore.fetchProjectIssues(projectId)
+
+  // Join private project channel and listen for updates
+  echo.private(`projects.${projectId}`)
+    .listen('.issue.updated', (event: { issue: Issue }) => {
+      const index = issueStore.issues.findIndex((i) => i.id === event.issue.id)
+      if (index !== -1) {
+        issueStore.issues[index] = event.issue
+      } else {
+        issueStore.issues.unshift(event.issue)
+      }
+    })
+})
+
+onUnmounted(() => {
+  echo.leave(`projects.${projectId}`)
 })
 
 function onDragStart(issue: Issue) {

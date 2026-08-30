@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Issue\StoreIssueRequest;
 use App\Http\Requests\V1\Issue\UpdateIssueRequest;
 use App\Http\Resources\V1\IssueResource;
+use App\Events\IssueUpdated;
 use App\Models\Issue;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
@@ -79,7 +80,12 @@ class IssueController extends Controller
             $issue->labels()->sync($request->label_ids);
         }
 
-        return new IssueResource($issue->load(['assignee', 'reporter', 'labels']));
+        $issue->load(['assignee', 'reporter', 'labels']);
+
+        // Broadcast update across WebSocket channel
+        broadcast(new IssueUpdated($issue))->toOthers();
+
+        return new IssueResource($issue);
     }
 
     public function destroy(Issue $issue): JsonResponse
