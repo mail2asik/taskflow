@@ -66,6 +66,30 @@ services:
     networks:
       - taskflow-network
 
+  queue:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: taskflow-queue-dev
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /var/www
+    env_file:
+      - path: .development.env
+        required: true
+      - path: .development.local.env
+        required: false
+    volumes:
+      - ./apps/api:/var/www
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - taskflow-network
+
   web:
     image: node:20-alpine
     container_name: taskflow-web-dev

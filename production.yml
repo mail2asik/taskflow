@@ -14,6 +14,22 @@ services:
     networks:
       - shared-network
 
+  queue:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: taskflow-queue
+    restart: unless-stopped
+    working_dir: /var/www
+    env_file:
+      - .production.env
+      - .production.local.env
+    volumes:
+      - ./apps/api:/var/www
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    networks:
+      - shared-network
+
   web:
     build:
       context: ./apps/web
