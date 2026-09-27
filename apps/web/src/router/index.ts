@@ -10,7 +10,21 @@ const routes: Array<RouteRecordRaw> = [
         path: '',
         name: 'home',
         component: () => import('../views/HomeView.vue'),
-        meta: { requiresGuest: false },
+      },
+      {
+        path: 'about',
+        name: 'about',
+        component: () => import('../views/AboutView.vue'),
+      },
+      {
+        path: 'how-it-works',
+        name: 'how-it-works',
+        component: () => import('../views/HowItWorksView.vue'),
+      },
+      {
+        path: 'contact',
+        name: 'contact',
+        component: () => import('../views/ContactView.vue'),
       },
       {
         path: 'login',
@@ -57,6 +71,9 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior() {
+    return { top: 0 }
+  },
 })
 
 router.beforeEach(async (to, _from, next) => {
