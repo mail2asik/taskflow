@@ -9,6 +9,7 @@ use App\Http\Resources\V1\UserResource;
 use App\Models\User;
 use App\Notifications\SendActivationCodeNotification;
 use App\Notifications\SendPasswordResetCodeNotification;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -18,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Register a new user and dispatch activation code email.
      */
@@ -34,13 +37,15 @@ class AuthController extends Controller
             'activation_code_expires_at' => Carbon::now()->addMinutes(15),
         ]);
 
-        // Send queued notification
         $user->notify(new SendActivationCodeNotification($activationCode));
 
-        return response()->json([
-            'message' => 'Registration successful. Please check your email for the account activation code.',
-            'user' => new UserResource($user),
-        ], 201);
+        return $this->successResponse(
+            [
+                'user' => new UserResource($user),
+            ],
+            'Registration successful. Please check your email for the account activation code.',
+            201
+        );
     }
 
     /**
@@ -74,12 +79,14 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Account successfully activated.',
-            'user' => new UserResource($user),
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+        return $this->successResponse(
+            [
+                'user' => new UserResource($user),
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ],
+            'Account successfully activated.'
+        );
     }
 
     /**
@@ -103,11 +110,14 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'user' => new UserResource($user),
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+        return $this->successResponse(
+            [
+                'user' => new UserResource($user),
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ],
+            'Logged in successfully.'
+        );
     }
 
     /**
@@ -133,9 +143,10 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         $user->notify(new SendPasswordResetCodeNotification($resetCode));
 
-        return response()->json([
-            'message' => 'Password reset code sent to your email.',
-        ]);
+        return $this->successResponse(
+            null,
+            'Password reset code sent to your email.'
+        );
     }
 
     /**
@@ -165,20 +176,23 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Clear reset tokens
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        return response()->json([
-            'message' => 'Password has been successfully reset.',
-        ]);
+        return $this->successResponse(
+            null,
+            'Password has been successfully reset.'
+        );
     }
 
     /**
      * Get the authenticated user's information.
      */
-    public function me(Request $request): UserResource
+    public function me(Request $request): JsonResponse
     {
-        return new UserResource($request->user());
+        return $this->successResponse(
+            new UserResource($request->user()),
+            'User profile retrieved successfully.'
+        );
     }
 
     /**
@@ -188,8 +202,9 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Successfully logged out.',
-        ]);
+        return $this->successResponse(
+            null,
+            'Successfully logged out.'
+        );
     }
 }

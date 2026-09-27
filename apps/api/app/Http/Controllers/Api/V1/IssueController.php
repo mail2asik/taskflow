@@ -2,20 +2,25 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Events\IssueUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Issue\StoreIssueRequest;
 use App\Http\Requests\V1\Issue\UpdateIssueRequest;
 use App\Http\Resources\V1\IssueResource;
-use App\Events\IssueUpdated;
 use App\Models\Issue;
 use App\Models\Project;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class IssueController extends Controller
 {
-    public function index(Request $request, Project $project): AnonymousResourceCollection
+    use ApiResponse;
+
+    /**
+     * Display a listing of the project's issues with filters.
+     */
+    public function index(Request $request, Project $project): JsonResponse
     {
         $query = $project->issues()->with(['assignee', 'reporter', 'labels']);
 
@@ -42,9 +47,15 @@ class IssueController extends Controller
             $query->where('assignee_id', $assigneeId);
         }
 
-        return IssueResource::collection($query->latest()->get());
+        return $this->successResponse(
+            IssueResource::collection($query->latest()->get()),
+            'Issues retrieved successfully.'
+        );
     }
 
+    /**
+     * Store a newly created issue for a project.
+     */
     public function store(StoreIssueRequest $request, Project $project): JsonResponse
     {
         // Generate issue key like OP-1, OP-2 based on project key and count
@@ -61,18 +72,28 @@ class IssueController extends Controller
             $issue->labels()->sync($request->label_ids);
         }
 
-        return response()->json(
+        return $this->successResponse(
             new IssueResource($issue->load(['assignee', 'reporter', 'labels'])),
+            'Issue created successfully.',
             201
         );
     }
 
-    public function show(Issue $issue): IssueResource
+    /**
+     * Display the specified issue.
+     */
+    public function show(Issue $issue): JsonResponse
     {
-        return new IssueResource($issue->load(['assignee', 'reporter', 'labels']));
+        return $this->successResponse(
+            new IssueResource($issue->load(['assignee', 'reporter', 'labels'])),
+            'Issue details retrieved successfully.'
+        );
     }
 
-    public function update(UpdateIssueRequest $request, Issue $issue): IssueResource
+    /**
+     * Update the specified issue and broadcast event.
+     */
+    public function update(UpdateIssueRequest $request, Issue $issue): JsonResponse
     {
         $issue->update($request->validated());
 
@@ -85,13 +106,22 @@ class IssueController extends Controller
         // Broadcast update across WebSocket channel
         broadcast(new IssueUpdated($issue))->toOthers();
 
-        return new IssueResource($issue);
+        return $this->successResponse(
+            new IssueResource($issue),
+            'Issue updated successfully.'
+        );
     }
 
+    /**
+     * Remove the specified issue from storage.
+     */
     public function destroy(Issue $issue): JsonResponse
     {
         $issue->delete();
 
-        return response()->json(['message' => 'Issue deleted successfully.']);
+        return $this->successResponse(
+            null,
+            'Issue deleted successfully.'
+        );
     }
 }

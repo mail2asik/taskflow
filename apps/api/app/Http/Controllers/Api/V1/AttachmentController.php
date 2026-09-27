@@ -6,12 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\AttachmentResource;
 use App\Models\Attachment;
 use App\Models\Issue;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class AttachmentController extends Controller
 {
+    use ApiResponse;
+
+    /**
+     * Store a newly uploaded attachment for an issue.
+     *
+     * @param Request $request
+     * @param Issue $issue
+     * @return JsonResponse
+     */
     public function store(Request $request, Issue $issue): JsonResponse
     {
         $request->validate([
@@ -29,14 +39,32 @@ class AttachmentController extends Controller
             'file_size' => $file->getSize(),
         ]);
 
-        return response()->json(new AttachmentResource($attachment), 201);
+        return $this->successResponse(
+            new AttachmentResource($attachment),
+            'Attachment uploaded successfully.',
+            201
+        );
     }
 
+    /**
+     * Remove the specified attachment from storage and database.
+     *
+     * @param Attachment $attachment
+     * @return JsonResponse
+     */
     public function destroy(Attachment $attachment): JsonResponse
     {
-        Storage::disk('public')->delete($attachment->file_path);
+        // Delete file from the public storage disk
+        if (Storage::disk('public')->exists($attachment->file_path)) {
+            Storage::disk('public')->delete($attachment->file_path);
+        }
+
+        // Delete database record
         $attachment->delete();
 
-        return response()->json(['message' => 'Attachment removed.']);
+        return $this->successResponse(
+            null,
+            'Attachment removed successfully.'
+        );
     }
 }

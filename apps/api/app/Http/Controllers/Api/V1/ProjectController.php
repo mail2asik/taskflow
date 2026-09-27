@@ -7,14 +7,19 @@ use App\Http\Requests\V1\Project\StoreProjectRequest;
 use App\Http\Requests\V1\Project\UpdateProjectRequest;
 use App\Http\Resources\V1\ProjectResource;
 use App\Models\Project;
-use Illuminate\Support\Facades\Gate;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Gate;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    use ApiResponse;
+
+    /**
+     * Display a listing of projects accessible by the authenticated user.
+     */
+    public function index(Request $request): JsonResponse
     {
         $projects = Project::query()
             ->where('owner_id', $request->user()->id)
@@ -23,9 +28,15 @@ class ProjectController extends Controller
             ->latest()
             ->get();
 
-        return ProjectResource::collection($projects);
+        return $this->successResponse(
+            ProjectResource::collection($projects),
+            'Projects retrieved successfully.'
+        );
     }
 
+    /**
+     * Store a newly created project in storage.
+     */
     public function store(StoreProjectRequest $request): JsonResponse
     {
         $project = Project::create([
@@ -52,17 +63,30 @@ class ProjectController extends Controller
             $project->members()->attach($members);
         }
 
-        return response()->json(new ProjectResource($project->load(['owner', 'members'])), 201);
+        return $this->successResponse(
+            new ProjectResource($project->load(['owner', 'members'])),
+            'Project created successfully.',
+            201
+        );
     }
 
-    public function show(Project $project): ProjectResource
+    /**
+     * Display the specified project.
+     */
+    public function show(Project $project): JsonResponse
     {
         Gate::authorize('view', $project);
 
-        return new ProjectResource($project->load(['owner', 'members']));
+        return $this->successResponse(
+            new ProjectResource($project->load(['owner', 'members'])),
+            'Project details retrieved successfully.'
+        );
     }
 
-    public function update(UpdateProjectRequest $request, Project $project): ProjectResource
+    /**
+     * Update the specified project in storage.
+     */
+    public function update(UpdateProjectRequest $request, Project $project): JsonResponse
     {
         Gate::authorize('update', $project);
 
@@ -86,15 +110,24 @@ class ProjectController extends Controller
             $project->members()->attach($members);
         }
 
-        return new ProjectResource($project->load(['owner', 'members']));
+        return $this->successResponse(
+            new ProjectResource($project->load(['owner', 'members'])),
+            'Project updated successfully.'
+        );
     }
 
+    /**
+     * Remove the specified project from storage.
+     */
     public function destroy(Project $project): JsonResponse
     {
         Gate::authorize('delete', $project);
 
         $project->delete();
 
-        return response()->json(['message' => 'Project deleted successfully.']);
+        return $this->successResponse(
+            null,
+            'Project deleted successfully.'
+        );
     }
 }

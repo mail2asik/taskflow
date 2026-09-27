@@ -6,20 +6,31 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Comment\StoreCommentRequest;
 use App\Http\Resources\V1\CommentResource;
 use App\Models\Comment;
-use Illuminate\Support\Facades\Gate;
 use App\Models\Issue;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
 {
-    public function index(Issue $issue): AnonymousResourceCollection
+    use ApiResponse;
+
+    /**
+     * Display a listing of comments for a specific issue.
+     */
+    public function index(Issue $issue): JsonResponse
     {
-        return CommentResource::collection(
-            $issue->comments()->with('user')->latest()->get()
+        $comments = $issue->comments()->with('user')->latest()->get();
+
+        return $this->successResponse(
+            CommentResource::collection($comments),
+            'Comments retrieved successfully.'
         );
     }
 
+    /**
+     * Store a newly created comment for an issue.
+     */
     public function store(StoreCommentRequest $request, Issue $issue): JsonResponse
     {
         $comment = $issue->comments()->create([
@@ -27,18 +38,25 @@ class CommentController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        return response()->json(
+        return $this->successResponse(
             new CommentResource($comment->load('user')),
+            'Comment added successfully.',
             201
         );
     }
 
+    /**
+     * Remove the specified comment from storage.
+     */
     public function destroy(Comment $comment): JsonResponse
     {
         Gate::authorize('delete', $comment);
 
         $comment->delete();
 
-        return response()->json(['message' => 'Comment deleted successfully.']);
+        return $this->successResponse(
+            null,
+            'Comment deleted successfully.'
+        );
     }
 }
