@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import apiClient from '../services/api'
-import type { User, AuthResponse } from '../types/user'
+import type { User, AuthData, ActivatePayload } from '../types/user'
+import type { ApiResponse } from '../types/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -9,37 +10,69 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value)
 
+  function setAuthData(authData: AuthData) {
+    user.value = authData.user
+    token.value = authData.access_token
+    localStorage.setItem('access_token', authData.access_token)
+  }
+
   async function login(credentials: Record<string, string>) {
-    const response = await apiClient.post<AuthResponse>('/auth/login', credentials)
-    setAuthData(response.data)
+    const response = await apiClient.post<ApiResponse<AuthData>>('/auth/login', credentials)
+    if (response.data.success && response.data.data) {
+      setAuthData(response.data.data)
+    }
+    return response.data
   }
 
   async function register(payload: Record<string, string>) {
-    const response = await apiClient.post<AuthResponse>('/auth/register', payload)
-    setAuthData(response.data)
+    const response = await apiClient.post<ApiResponse<{ user: User }>>('/auth/register', payload)
+    return response.data
+  }
+
+  async function activateAccount(payload: ActivatePayload) {
+    const response = await apiClient.post<ApiResponse<AuthData>>('/auth/activate', payload)
+    if (response.data.success && response.data.data) {
+      setAuthData(response.data.data)
+    }
+    return response.data
   }
 
   async function fetchUser() {
     if (!token.value) return
     try {
-      const response = await apiClient.get<{ data: User }>('/auth/me')
-      user.value = response.data.data
+      const response = await apiClient.get<ApiResponse<User>>('/auth/me')
+      if (response.data.data) {
+        user.value = response.data.data
+      }
     } catch {
-      logout()
+      logoutLocal()
     }
   }
 
-  function setAuthData(data: AuthResponse) {
-    user.value = data.user
-    token.value = data.access_token
-    localStorage.setItem('access_token', data.access_token)
+  async function logout() {
+    try {
+      await apiClient.post('/auth/logout')
+    } catch (err) {
+      // Ignore API logout errors and clear local credentials
+    } finally {
+      logoutLocal()
+    }
   }
 
-  function logout() {
+  function logoutLocal() {
     user.value = null
     token.value = null
     localStorage.removeItem('access_token')
   }
 
-  return { user, token, isAuthenticated, login, register, fetchUser, logout }
+  return {
+    user,
+    token,
+    isAuthenticated,
+    login,
+    register,
+    activateAccount,
+    fetchUser,
+    logout,
+  }
 })

@@ -1,7 +1,9 @@
+// src/router/index.ts
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const routes: Array<RouteRecordRaw> = [
+  // Public & Guest Routes (Wrapped in GuestLayout)
   {
     path: '/',
     component: () => import('../layouts/GuestLayout.vue'),
@@ -38,11 +40,19 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../views/RegisterView.vue'),
         meta: { requiresGuest: true },
       },
+      {
+        path: 'activate',
+        name: 'activate',
+        component: () => import('../views/ActivateView.vue'),
+        meta: { requiresGuest: true },
+      },
     ],
   },
+
+  // Private Application Routes (Wrapped in AppLayout/AuthenticatedLayout)
   {
     path: '/app',
-    component: () => import('../layouts/AppLayout.vue'),
+    component: () => import('../layouts/AuthenticatedLayout.vue'), // Or '../layouts/AppLayout.vue'
     meta: { requiresAuth: true },
     children: [
       {
@@ -62,6 +72,8 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
   },
+
+  // Fallback Wildcard Route (Redirects unknown URLs back to Home)
   {
     path: '/:pathMatch(.*)*',
     redirect: '/',
@@ -76,8 +88,14 @@ const router = createRouter({
   },
 })
 
+// Navigation Guard for Authentication and Guest Checks
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
+
+  // Ensure current user state is checked if token exists in localStorage
+  if (authStore.token && !authStore.user) {
+    await authStore.fetchUser()
+  }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'login' })

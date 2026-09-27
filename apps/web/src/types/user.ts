@@ -1,3 +1,4 @@
+// src/types/user.ts
 export interface User {
   id: number
   name: string
@@ -6,8 +7,13 @@ export interface User {
   created_at: string
 }
 
-export interface AuthResponse {
+export interface AuthData {
   user: User
   access_token: string
   token_type: string
+}
+
+export interface ActivatePayload {
+  email: string
+  code: string
 }
