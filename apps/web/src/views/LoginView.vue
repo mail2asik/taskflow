@@ -1,3 +1,4 @@
+<!-- src/views/LoginView.vue -->
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
@@ -66,7 +67,12 @@ async function onLogin() {
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-sm font-semibold text-slate-700">Password</label>
+          <RouterLink to="/forgot-password" class="text-xs text-brand-600 hover:underline font-semibold">
+            Forgot password?
+          </RouterLink>
+        </div>
         <input
           v-model="password"
           type="password"
