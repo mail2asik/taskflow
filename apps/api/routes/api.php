@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\IssueController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\CommentController;
+use App\Http\Controllers\Api\V1\UserController;
 
 Route::prefix('v1')->group(function () {
     // Public routes
@@ -23,6 +24,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'logout']);
         });
+
+        Route::get('/users/search', [UserController::class, 'search']);
 
         // Projects API
         Route::apiResource('projects', ProjectController::class);

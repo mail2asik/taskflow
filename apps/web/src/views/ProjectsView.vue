@@ -2,14 +2,32 @@
 import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useProjectStore } from '../stores/project'
-import CreateProjectModal from '../components/project/CreateProjectModal.vue'
+import SaveProjectModal from '../components/project/SaveProjectModal.vue'
+import type { Project } from '../types/project'
 
 const projectStore = useProjectStore()
 const isModalOpen = ref(false)
+const selectedProject = ref<Project | null>(null)
 
 onMounted(() => {
   projectStore.fetchProjects()
 })
+
+function openCreateModal() {
+  selectedProject.value = null
+  isModalOpen.value = true
+}
+
+function openEditModal(project: Project) {
+  selectedProject.value = project
+  isModalOpen.value = true
+}
+
+async function handleDelete(project: Project) {
+  if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
+    await projectStore.deleteProject(project.id)
+  }
+}
 </script>
 
 <template>
@@ -20,7 +38,7 @@ onMounted(() => {
         <p class="text-sm text-slate-500 mt-1">Manage your team workspace and board trackers</p>
       </div>
       <button
-        @click="isModalOpen = true"
+        @click="openCreateModal"
         class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition shadow-sm"
       >
         + New Project
@@ -40,24 +58,53 @@ onMounted(() => {
             <span class="text-xs font-bold px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg uppercase tracking-wider">
               {{ project.key }}
             </span>
-            <span class="text-xs text-slate-400">{{ project.members?.length || 1 }} members</span>
+            <div class="flex items-center space-x-2">
+              <button @click="openEditModal(project)" class="text-xs text-slate-500 hover:text-indigo-600 font-medium">
+                Edit
+              </button>
+              <button @click="handleDelete(project)" class="text-xs text-slate-400 hover:text-red-600 font-medium">
+                Delete
+              </button>
+            </div>
           </div>
+          
           <h3 class="text-lg font-bold text-slate-900 mb-1">{{ project.name }}</h3>
-          <p class="text-sm text-slate-500 line-clamp-2 mb-6">
+          <p class="text-sm text-slate-500 line-clamp-2 mb-4">
             {{ project.description || 'No description provided.' }}
           </p>
+
+          <!-- Label Badges -->
+          <div v-if="project.labels && project.labels.length > 0" class="flex flex-wrap gap-1.5 mb-4">
+            <span
+              v-for="label in project.labels"
+              :key="label.id || label.name"
+              class="text-[10px] font-bold px-2 py-0.5 rounded-md text-white"
+              :style="{ backgroundColor: label.color || (label as any).color_code || '#64748B' }"
+            >
+              {{ label.name }}
+            </span>
+          </div>
         </div>
 
-        <RouterLink
-          :to="`/app/projects/${project.id}/board`"
-          class="inline-flex items-center justify-between text-sm font-semibold text-indigo-600 hover:text-indigo-800 pt-4 border-t border-slate-100"
-        >
-          <span>Open Kanban Board</span>
-          <span>&rarr;</span>
-        </RouterLink>
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-xs text-slate-400 font-medium">{{ project.members?.length || 1 }} members</span>
+          <RouterLink
+            :to="`/app/projects/${project.id}/board`"
+            class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1"
+          >
+            <span>Open Board</span>
+            <span>&rarr;</span>
+          </RouterLink>
+        </div>
       </div>
     </div>
 
-    <CreateProjectModal :is-open="isModalOpen" @close="isModalOpen = false" />
+    <!-- Unified Save/Edit Modal -->
+    <SaveProjectModal
+      :is-open="isModalOpen"
+      :project-to-edit="selectedProject"
+      @close="isModalOpen = false"
+      @saved="projectStore.fetchProjects()"
+    />
   </div>
 </template>
