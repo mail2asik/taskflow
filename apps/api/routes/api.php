@@ -7,6 +7,21 @@ use App\Http\Controllers\Api\V1\ProjectController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\UserController;
+use Illuminate\Support\Facades\Broadcast;
+
+/*
+|--------------------------------------------------------------------------
+| Broadcast Authentication Route
+|--------------------------------------------------------------------------
+|
+| Registers the broadcast authentication endpoint under the /api/v1 prefix
+| using Sanctum token authentication middleware.
+|
+*/
+Broadcast::routes([
+    'prefix' => 'v1',
+    'middleware' => ['auth:sanctum'],
+]);
 
 Route::prefix('v1')->group(function () {
     // Public routes

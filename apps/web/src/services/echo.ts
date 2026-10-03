@@ -12,16 +12,16 @@ window.Pusher = Pusher
 
 export const echo = new Echo({
   broadcaster: 'reverb',
-  key: import.meta.env.VITE_REVERB_APP_KEY || 'taskflow-app-key',
-  wsHost: import.meta.env.VITE_REVERB_HOST || 'localhost',
-  wsPort: import.meta.env.VITE_REVERB_PORT || 8080,
-  wssPort: import.meta.env.VITE_REVERB_PORT || 8080,
+  key: import.meta.env.VITE_REVERB_APP_KEY || 'gvhhvbruiifew5evxm0i',
+  wsHost: import.meta.env.VITE_REVERB_HOST || 'api-taskflow.asik.local',
+  wsPort: Number(import.meta.env.VITE_REVERB_PORT) || 80,
+  wssPort: Number(import.meta.env.VITE_REVERB_PORT) || 80,
   forceTLS: false,
   enabledTransports: ['ws', 'wss'],
-  authEndpoint: 'http://127.0.0.1:8080/api/v1/broadcasting/auth',
+  authEndpoint: 'http://api-taskflow.asik.local/api/v1/broadcasting/auth',
   auth: {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+      Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
     },
   },
 })
