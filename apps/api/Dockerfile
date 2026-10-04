@@ -26,6 +26,9 @@ WORKDIR /var/www
 
 COPY . /var/www
 
+# install composer dependencies
+RUN composer install --no-dev --optimize-autoloader
+
 # Copy Supervisor Configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
