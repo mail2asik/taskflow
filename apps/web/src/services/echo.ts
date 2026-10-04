@@ -18,7 +18,7 @@ export const echo = new Echo({
   wssPort: Number(import.meta.env.VITE_REVERB_PORT) || 80,
   forceTLS: false,
   enabledTransports: ['ws', 'wss'],
-  authEndpoint: 'http://api-taskflow.asik.local/api/v1/broadcasting/auth',
+  authEndpoint: import.meta.env.VITE_API_BASE_URL + '/broadcasting/auth',
   auth: {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
