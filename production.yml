@@ -5,7 +5,6 @@ services:
       dockerfile: Dockerfile
     container_name: taskflow-api
     restart: unless-stopped
-    working_dir: /var/www
     env_file:
       - .production.env
       - .production.local.env
