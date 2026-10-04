@@ -4,8 +4,8 @@ import { ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-const email = ref('')
-const password = ref('')
+const email = ref('admin@taskflow.dev')
+const password = ref('password')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
