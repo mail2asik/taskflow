@@ -2,9 +2,38 @@
 import { ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useSubscriberStore } from '../stores/subscriber'
 
 const authStore = useAuthStore()
+const subscriberStore = useSubscriberStore()
+
 const mobileMenuOpen = ref(false)
+
+// Subscription Form Reactive State
+const email = ref('')
+const subscribeSuccess = ref(false)
+const subscribeError = ref('')
+
+async function handleSubscribe() {
+  subscribeError.value = ''
+  subscribeSuccess.value = false
+
+  if (!email.value) return
+
+  try {
+    const response = await subscriberStore.subscribe({ email: email.value })
+    if (response.success) {
+      subscribeSuccess.value = true
+      email.value = '' // Clear input on success
+    }
+  } catch (err: any) {
+    if (err.response?.data?.errors?.email) {
+      subscribeError.value = err.response.data.errors.email[0]
+    } else {
+      subscribeError.value = err.response?.data?.message || 'Failed to subscribe. Please try again.'
+    }
+  }
+}
 </script>
 
 <template>
@@ -149,7 +178,7 @@ const mobileMenuOpen = ref(false)
           </template>
           <template v-else>
             <RouterLink
-              to="/app/dashboard"
+              to="/app/projects"
               @click="mobileMenuOpen = false"
               class="w-full text-center px-4 py-2.5 text-sm font-bold text-white bg-brand-600 rounded-xl shadow-md"
             >
@@ -202,20 +231,37 @@ const mobileMenuOpen = ref(false)
             </ul>
           </div>
 
+          <!-- Subscription Column -->
           <div>
             <h3 class="text-xs font-bold text-slate-300 tracking-wider uppercase mb-4">Subscribe</h3>
             <p class="text-xs text-slate-400 mb-3">Get product releases and engineering updates.</p>
-            <form @submit.prevent class="flex flex-col gap-2">
+            
+            <form @submit.prevent="handleSubscribe" class="flex flex-col gap-2">
               <input
+                v-model="email"
                 type="email"
+                required
                 placeholder="Enter your email"
-                class="px-3.5 py-2 text-sm rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                class="px-3.5 py-2 text-sm rounded-lg bg-slate-800 border text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                :class="subscribeError ? 'border-red-500' : 'border-slate-700'"
               />
+
+              <!-- Error Message Feedback -->
+              <p v-if="subscribeError" class="text-xs text-red-400">
+                {{ subscribeError }}
+              </p>
+
+              <!-- Success Message Feedback -->
+              <p v-if="subscribeSuccess" class="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                <span>✓</span> Subscribed successfully!
+              </p>
+
               <button
                 type="submit"
-                class="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition"
+                :disabled="subscriberStore.isLoading"
+                class="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 rounded-lg transition shadow-md"
               >
-                Subscribe
+                {{ subscriberStore.isLoading ? 'Subscribing...' : 'Subscribe' }}
               </button>
             </form>
           </div>

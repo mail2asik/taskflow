@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\Api\V1\ContactController;
+use App\Http\Controllers\Api\V1\SubscriberController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     });
     Route::post('/contact', [ContactController::class, 'store']);
+    Route::post('/subscribe', [SubscriberController::class, 'store']);
 
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
