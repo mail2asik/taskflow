@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useIssueStore } from '../stores/issue'
+import { useProjectStore } from '../stores/project'
 import { echo } from '../services/echo'
 import IssueCard from '../components/issue/IssueCard.vue'
 import IssueModal from '../components/issue/IssueModal.vue'
@@ -9,7 +10,10 @@ import type { Issue, IssueStatus, CreateIssuePayload } from '../types/issue'
 
 const route = useRoute()
 const issueStore = useIssueStore()
-const projectId = Number(route.params.projectId)
+const projectStore = useProjectStore()
+
+// Note: Ensure route param name matches your router configuration (e.g., :projectId or :id)
+const projectId = Number(route.params.projectId || route.params.id)
 
 const draggedIssue = ref<Issue | null>(null)
 const isModalOpen = ref(false)
@@ -25,8 +29,13 @@ const columns: { label: string; key: IssueStatus }[] = [
 ]
 
 onMounted(() => {
+  // Fetch project details to load project name
+  projectStore.fetchProjectById(projectId)
+
+  // Fetch issue list for the board
   issueStore.fetchProjectIssues(projectId)
 
+  // Real-time listener via Echo
   echo.private(`projects.${projectId}`)
     .listen('.issue.updated', (event: { issue: Issue }) => {
       const index = issueStore.issues.findIndex((i) => i.id === event.issue.id)
@@ -96,7 +105,18 @@ async function onDrop(targetStatus: IssueStatus) {
 <template>
   <div class="p-6">
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">Project Board</h2>
+      <div class="flex items-center space-x-3">
+        <h2 class="text-2xl font-bold text-gray-800">Project Board</h2>
+        
+        <!-- Active Project Name Badge -->
+        <span 
+          v-if="projectStore.currentProject" 
+          class="text-sm font-semibold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100"
+        >
+          {{ projectStore.currentProject.name }}
+        </span>
+      </div>
+
       <button
         @click="openCreateModal('backlog')"
         class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg shadow-sm hover:bg-indigo-700 text-sm"
@@ -140,14 +160,13 @@ async function onDrop(targetStatus: IssueStatus) {
       </div>
     </div>
 
-    <!-- Inside KanbanBoardView.vue template -->
-  <IssueModal
-    :is-open="isModalOpen"
-    :issue="selectedIssue"
-    :default-status="defaultStatusForNew"
-    :project-id="projectId"
-    @close="isModalOpen = false"
-    @save="handleSaveIssue"
-  />
+    <IssueModal
+      :is-open="isModalOpen"
+      :issue="selectedIssue"
+      :default-status="defaultStatusForNew"
+      :project-id="projectId"
+      @close="isModalOpen = false"
+      @save="handleSaveIssue"
+    />
   </div>
 </template>
