@@ -269,12 +269,13 @@ function formatFileSize(bytes: number): string {
                 type="button"
                 v-for="label in projectStore.currentProject?.labels || []"
                 :key="label.id"
-                @click="toggleLabel(label.id)"
+                @click="label.id !== undefined && toggleLabel(label.id)"
+                :disabled="label.id === undefined"
                 class="px-2.5 py-1 rounded-full text-xs font-medium transition-all border"
                 :style="{
-                  backgroundColor: form.label_ids?.includes(label.id) ? label.color_code : '#F3F4F6',
-                  color: form.label_ids?.includes(label.id) ? '#FFFFFF' : '#374151',
-                  borderColor: label.color_code
+                  backgroundColor: label.id !== undefined && form.label_ids?.includes(label.id) ? label.color : '#F3F4F6',
+                  color: label.id !== undefined && form.label_ids?.includes(label.id) ? '#FFFFFF' : '#374151',
+                  borderColor: label.color
                 }"
               >
                 {{ label.name }}
