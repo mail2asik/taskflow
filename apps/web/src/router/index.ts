@@ -74,6 +74,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'project-board',
         component: () => import('../views/KanbanBoardView.vue'),
       },
+      {
+        path: 'change-password',
+        name: 'change-password',
+        component: () => import('../views/ChangePasswordView.vue'),
+      },
     ],
   },
   {

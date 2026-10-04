@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import apiClient from '../services/api'
-import type { User, AuthData, ActivatePayload } from '../types/user'
+import type { User, AuthData, ActivatePayload, ChangePasswordPayload } from '../types/user'
 import type { ApiResponse } from '../types/api'
 
 export interface ResetPasswordPayload {
@@ -45,8 +45,6 @@ export const useAuthStore = defineStore('auth', () => {
     return response.data
   }
 
-  // --- NEW METHODS FOR PASSWORD RECOVERY ---
-
   async function forgotPassword(email: string) {
     const response = await apiClient.post<ApiResponse<null>>('/auth/forgot-password', { email })
     return response.data
@@ -54,6 +52,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function resetPassword(payload: ResetPasswordPayload) {
     const response = await apiClient.post<ApiResponse<null>>('/auth/reset-password', payload)
+    return response.data
+  }
+
+  // --- NEW: Change Password Method ---
+  async function changePassword(payload: ChangePasswordPayload) {
+    const response = await apiClient.post<ApiResponse<null>>('/auth/change-password', payload)
     return response.data
   }
 
@@ -94,6 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
     activateAccount,
     forgotPassword,
     resetPassword,
+    changePassword,
     fetchUser,
     logout,
   }

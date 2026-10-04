@@ -76,7 +76,7 @@ const mobileMenuOpen = ref(false)
           </template>
           <template v-else>
             <RouterLink
-              to="/app/dashboard"
+              to="/app/projects"
               class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md shadow-brand-600/25 transition-all"
             >
               <span>Dashboard</span>

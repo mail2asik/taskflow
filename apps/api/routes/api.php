@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\Api\V1\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,11 +33,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     });
+    Route::post('/contact', [ContactController::class, 'store']);
 
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('auth')->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
+            Route::post('/change-password', [AuthController::class, 'changePassword']);
             Route::post('/logout', [AuthController::class, 'logout']);
         });
 
