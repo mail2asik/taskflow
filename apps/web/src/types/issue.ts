@@ -9,6 +9,28 @@ export interface Label {
   color_code: string
 }
 
+export interface Comment {
+  id: number
+  issue_id: number
+  user_id: number
+  body: string
+  user: User
+  created_at: string
+  updated_at: string
+}
+
+export interface Attachment {
+  id: number
+  issue_id: number
+  user_id: number
+  file_name: string
+  file_path: string
+  mime_type: string
+  file_size: number
+  created_at: string
+  updated_at: string
+}
+
 export interface Issue {
   id: number
   issue_key: string
@@ -21,6 +43,8 @@ export interface Issue {
   assignee?: User
   reporter?: User
   labels?: Label[]
+  comments?: Comment[]
+  attachments?: Attachment[]
   created_at: string
   updated_at: string
 }

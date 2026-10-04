@@ -16,6 +16,19 @@ class AttachmentController extends Controller
     use ApiResponse;
 
     /**
+     * Display a listing of attachments for a specific issue.
+     */
+    public function index(Issue $issue): JsonResponse
+    {
+        $attachments = $issue->attachments()->with('user')->latest()->get();
+
+        return $this->successResponse(
+            AttachmentResource::collection($attachments),
+            'Attachments retrieved successfully.'
+        );
+    }
+
+    /**
      * Store a newly uploaded attachment for an issue.
      *
      * @param Request $request
@@ -66,5 +79,20 @@ class AttachmentController extends Controller
             null,
             'Attachment removed successfully.'
         );
+    }
+
+    /**
+     * Download the specified attachment.
+     *
+     * @param Attachment $attachment
+     * @return \Illuminate\Http\Response
+     */
+    public function download(Attachment $attachment)
+    {
+        if (Storage::disk('public')->exists($attachment->file_path)) {
+            return response()->download(storage_path("app/public/{$attachment->file_path}"));
+        }
+
+        return response()->json(['message' => 'File not found.'], 404);
     }
 }

@@ -4,12 +4,17 @@ import { useRoute } from 'vue-router'
 import { useIssueStore } from '../stores/issue'
 import { echo } from '../services/echo'
 import IssueCard from '../components/issue/IssueCard.vue'
-import type { Issue, IssueStatus } from '../types/issue'
+import IssueModal from '../components/issue/IssueModal.vue'
+import type { Issue, IssueStatus, CreateIssuePayload } from '../types/issue'
 
 const route = useRoute()
 const issueStore = useIssueStore()
 const projectId = Number(route.params.projectId)
+
 const draggedIssue = ref<Issue | null>(null)
+const isModalOpen = ref(false)
+const selectedIssue = ref<Issue | null>(null)
+const defaultStatusForNew = ref<IssueStatus>('backlog')
 
 const columns: { label: string; key: IssueStatus }[] = [
   { label: 'Backlog', key: 'backlog' },
@@ -22,7 +27,6 @@ const columns: { label: string; key: IssueStatus }[] = [
 onMounted(() => {
   issueStore.fetchProjectIssues(projectId)
 
-  // Join private project channel and listen for updates
   echo.private(`projects.${projectId}`)
     .listen('.issue.updated', (event: { issue: Issue }) => {
       const index = issueStore.issues.findIndex((i) => i.id === event.issue.id)
@@ -38,6 +42,40 @@ onUnmounted(() => {
   echo.leave(`projects.${projectId}`)
 })
 
+function openCreateModal(status: IssueStatus = 'backlog') {
+  selectedIssue.value = null
+  defaultStatusForNew.value = status
+  isModalOpen.value = true
+}
+
+function openEditModal(issue: Issue) {
+  selectedIssue.value = issue
+  isModalOpen.value = true
+}
+
+async function handleSaveIssue(payload: CreateIssuePayload) {
+  try {
+    if (selectedIssue.value) {
+      await issueStore.updateIssue(selectedIssue.value.id, payload)
+    } else {
+      await issueStore.createIssue(projectId, payload)
+    }
+    isModalOpen.value = false
+  } catch {
+    alert('Failed to save issue.')
+  }
+}
+
+async function handleDeleteIssue(issue: Issue) {
+  if (confirm(`Are you sure you want to delete ${issue.issue_key}?`)) {
+    try {
+      await issueStore.deleteIssue(issue.id)
+    } catch {
+      alert('Failed to delete issue.')
+    }
+  }
+}
+
 function onDragStart(issue: Issue) {
   draggedIssue.value = issue
 }
@@ -46,7 +84,7 @@ async function onDrop(targetStatus: IssueStatus) {
   if (!draggedIssue.value || draggedIssue.value.status === targetStatus) return
   const issueId = draggedIssue.value.id
   draggedIssue.value = null
-  
+
   try {
     await issueStore.updateIssueStatus(issueId, targetStatus)
   } catch {
@@ -57,15 +95,23 @@ async function onDrop(targetStatus: IssueStatus) {
 
 <template>
   <div class="p-6">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Project Board</h2>
-    
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Project Board</h2>
+      <button
+        @click="openCreateModal('backlog')"
+        class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg shadow-sm hover:bg-indigo-700 text-sm"
+      >
+        + Create Issue
+      </button>
+    </div>
+
     <div class="flex space-x-4 overflow-x-auto pb-4">
       <div
         v-for="column in columns"
         :key="column.key"
         @dragover.prevent
         @drop="onDrop(column.key)"
-        class="w-72 flex-shrink-0 bg-gray-50 p-4 rounded-xl border border-gray-200 min-h-[600px]"
+        class="w-72 flex-shrink-0 bg-gray-50 p-4 rounded-xl border border-gray-200 min-h-[600px] flex flex-col"
       >
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wider">{{ column.label }}</h3>
@@ -74,15 +120,34 @@ async function onDrop(targetStatus: IssueStatus) {
           </span>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-3 flex-1">
           <IssueCard
             v-for="issue in issueStore.columns[column.key]"
             :key="issue.id"
             :issue="issue"
             @dragstart="onDragStart"
+            @edit="openEditModal"
+            @delete="handleDeleteIssue"
           />
         </div>
+
+        <button
+          @click="openCreateModal(column.key)"
+          class="mt-3 w-full py-2 border-2 border-dashed border-gray-200 text-gray-500 hover:border-indigo-400 hover:text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
+        >
+          + Add Issue
+        </button>
       </div>
     </div>
+
+    <!-- Inside KanbanBoardView.vue template -->
+  <IssueModal
+    :is-open="isModalOpen"
+    :issue="selectedIssue"
+    :default-status="defaultStatusForNew"
+    :project-id="projectId"
+    @close="isModalOpen = false"
+    @save="handleSaveIssue"
+  />
   </div>
 </template>

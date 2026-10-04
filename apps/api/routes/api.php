@@ -59,7 +59,9 @@ Route::prefix('v1')->group(function () {
         Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 
         // Attachment API
+        Route::get('/issues/{issue}/attachments', [AttachmentController::class, 'index']);
         Route::post('/issues/{issue}/attachments', [AttachmentController::class, 'store']);
+        Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download']);
         Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy']);
     });
 });

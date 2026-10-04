@@ -50,8 +50,6 @@ class CommentController extends Controller
      */
     public function destroy(Comment $comment): JsonResponse
     {
-        Gate::authorize('delete', $comment);
-
         $comment->delete();
 
         return $this->successResponse(
