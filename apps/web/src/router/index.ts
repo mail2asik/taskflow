@@ -65,11 +65,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true },
     children: [
       {
-        path: 'dashboard',
-        name: 'dashboard',
-        component: () => import('../views/DashboardView.vue'),
-      },
-      {
         path: 'projects',
         name: 'projects',
         component: () => import('../views/ProjectsView.vue'),
