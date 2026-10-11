@@ -16,7 +16,7 @@ export const echo = new Echo({
   wsHost: import.meta.env.VITE_REVERB_HOST || 'api-taskflow.asik.local',
   wsPort: Number(import.meta.env.VITE_REVERB_PORT) || 80,
   wssPort: Number(import.meta.env.VITE_REVERB_PORT) || 443,
-  forceTLS: import.meta.env.VITE_REVERB_PORT === '443',
+  forceTLS: false,
   enabledTransports: ['ws', 'wss'],
   authEndpoint: import.meta.env.VITE_API_BASE_URL + '/broadcasting/auth',
   auth: {
