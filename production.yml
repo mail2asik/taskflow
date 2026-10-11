@@ -16,10 +16,10 @@ services:
       context: ./apps/web
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
-        VITE_APP_NAME: ${VITE_APP_NAME}
-        VITE_REVERB_APP_KEY: ${VITE_REVERB_APP_KEY}
-        VITE_REVERB_HOST: ${VITE_REVERB_HOST}
+        VITE_API_BASE_URL: https://api-taskflow.asik.work/api/v1
+        VITE_APP_NAME: Taskflow
+        VITE_REVERB_APP_KEY: gvhhvbruiifew5evxm0j
+        VITE_REVERB_HOST: api-taskflow.asik.work
     container_name: taskflow-web
     restart: unless-stopped
     env_file:

@@ -15,8 +15,8 @@ export const echo = new Echo({
   key: import.meta.env.VITE_REVERB_APP_KEY || 'gvhhvbruiifew5evxm0i',
   wsHost: import.meta.env.VITE_REVERB_HOST || 'api-taskflow.asik.local',
   wsPort: Number(import.meta.env.VITE_REVERB_PORT) || 80,
-  wssPort: Number(import.meta.env.VITE_REVERB_PORT) || 80,
-  forceTLS: false,
+  wssPort: Number(import.meta.env.VITE_REVERB_PORT) || 443,
+  forceTLS: import.meta.env.VITE_REVERB_PORT === '443',
   enabledTransports: ['ws', 'wss'],
   authEndpoint: import.meta.env.VITE_API_BASE_URL + '/broadcasting/auth',
   auth: {
