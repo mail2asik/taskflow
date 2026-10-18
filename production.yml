@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: taskflow-api
     restart: unless-stopped
+    user: "1000:1000"
     env_file:
       - .production.env
       - .production.local.env
