@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\V1\Auth\LoginRequest;
 use App\Http\Requests\V1\Auth\RegisterRequest;
 use App\Http\Resources\V1\UserResource;
@@ -37,7 +36,6 @@ class AuthController extends Controller
             'activation_code' => $activationCode,
             'activation_code_expires_at' => Carbon::now()->addMinutes(15),
         ]);
-        Log::info('Activation code generated for user: ' . $user->email . ' with code: ' . $activationCode);
 
         $user->notify(new SendActivationCodeNotification($activationCode));
 
