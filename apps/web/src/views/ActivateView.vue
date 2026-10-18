@@ -32,7 +32,7 @@ async function onActivate() {
       code: code.value,
     })
     if (res.success) {
-      router.push({ name: 'dashboard' })
+      router.push({ name: 'projects' })
     }
   } catch (err: any) {
     if (err.response?.data?.errors) {
