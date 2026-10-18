@@ -26,6 +26,16 @@ WORKDIR /var/www
 
 COPY . /var/www
 
+# Set up storage and bootstrap cache directories with proper permissions
+RUN mkdir -p /var/www/storage/logs \
+    /var/www/bootstrap/cache \
+    && chown -R www-data:www-data \
+        /var/www/storage \
+        /var/www/bootstrap/cache \
+    && chmod -R ug+rwX \
+        /var/www/storage \
+        /var/www/bootstrap/cache
+
 # install composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
