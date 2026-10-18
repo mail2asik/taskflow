@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 
 class SendActivationCodeNotification extends Notification implements ShouldQueue
 {
@@ -36,6 +37,7 @@ class SendActivationCodeNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        Log::info('Sending activation code to user: ' . $notifiable->email . ' with code: ' . $this->code);
         return (new MailMessage)
             ->subject('Account Activation Code')
             ->greeting('Hello ' . $notifiable->name . '!')
